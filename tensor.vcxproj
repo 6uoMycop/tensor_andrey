@@ -19,11 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="poly34.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Tensor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="poly34.h" />
+    <ClInclude Include="Tensor.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
