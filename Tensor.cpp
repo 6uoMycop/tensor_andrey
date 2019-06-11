@@ -15,7 +15,7 @@ Tensor::~Tensor()
 }
 
 //
-// Общее вычисление
+// General computation
 //
 int Tensor::calculate(double dTensor[3][3], double* dCharacteristicValues, double dCharacteristicVectors[3][3])
 {
@@ -34,8 +34,8 @@ int Tensor::calculate(double dTensor[3][3], double* dCharacteristicValues, doubl
 }
 
 //
-// Ищем коэффициенты при lamda^2, lamda^1 и lamda^0
-//                       c[0]     c[1]      c[2]
+// Finds coefficients at lamda^2, lamda^1 and lamda^0
+//                       c[0]     c[1]        c[2]
 //
 void Tensor::getCoefs(double* c, double dTensor[3][3])
 {
@@ -63,9 +63,9 @@ void Tensor::getCoefs(double* c, double dTensor[3][3])
 }
 
 //
-// Проверка на то, остался ли единственный элемент с ненулевым коэффициентом в уравнении
-// Возвращает 1 в случае неудачи, в случае успеха - 0
-// iIndex - индекс элемента
+// Checks if there is the only element with non-zero coefficient in equation
+// Returns 0 if succeed, otherwise 1
+// iIndex - that element's index
 //
 int Tensor::check(double* dArray, int* pIndex)
 {
@@ -89,13 +89,13 @@ int Tensor::check(double* dArray, int* pIndex)
 }
 
 // 
-// Нахождение нормированного собственного вектора
+// Finds normalized characteristic vector
 // 
 void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteristicNumber, double* dCharacteristicVector)
 {
     double dTensor[3][3];
 
-    dCharacteristicVector[0] = 1.0; // проверить, норм ли единицы
+    dCharacteristicVector[0] = 1.0;
     dCharacteristicVector[1] = 1.0;
     dCharacteristicVector[2] = 1.0;
 
@@ -115,8 +115,6 @@ void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteris
     int iIndex = 0;
     int iIndex1 = 0;
     int iLine = 0;
-
-    const double dZeroArray[6] = { 0 };
 
     for (int i = 0; i < 3; i++)
     {
@@ -143,7 +141,8 @@ void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteris
         {
             flag0 = 0;
             iIndex = 0;
-            if (check(dBuffer[i], &iIndex) == 0 && memcmp(&dBuffer[i][3], dZeroArray, 3 * sizeof(double)) == 0) // Exists! j: in a_j*x_j a_j != 0  =>  a_j = 0
+            if (check(dBuffer[i], &iIndex) == 0 &&                                    // Exists! j: in a_j*x_j a_j != 0  =>  a_j = 0
+                dBuffer[i][3] == 0.0 && dBuffer[i][4] == 0.0 && dBuffer[i][5] == 0.0) //
             {
                 if (!bReady[iIndex])
                 {
@@ -163,12 +162,12 @@ void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteris
         iIndex = 0;
         for (int i = 0; i < 3; i++)
         {
-            if (check(dBuffer[i], NULL) != 0) // если элемент не единственный (есть, что перенести)
+            if (check(dBuffer[i], NULL) != 0) // if there is not the only element (we can carry something)
             {
                 for (int j = 0; j < 3; j++)
                 {
 
-                    if (dBuffer[i][j] != 0.0) // переносим вправо
+                    if (dBuffer[i][j] != 0.0) // carry all the stuff to the right
                     {
                         for (int k = 0; k < 3; k++)
                         {
@@ -180,20 +179,20 @@ void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteris
                         }
                         dBuffer[i][j] = 1;
                         flag0 = 1;
-                        iLine = i; // номер уравнения, из которого выражали
+                        iLine = i; // equation's number
                         break;
                     }
 
                 }
             }
 
-            if (flag0) // что-то выразили, можем подставить
+            if (flag0) // now we can substitute
             {
                 break;
             }
         }
 
-        // если сократились одинаковые переменные, то записываем 1 в результат 
+        // if the same variables were reduced, write 1 to result
         for (int i = 0; i < 3; i++)
         {
             if (check(dBuffer[i], &iIndex) == 0 && check(&dBuffer[i][3], &iIndex1) == 0)
@@ -209,18 +208,14 @@ void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteris
             }
         }
 
-        //for (int i = 0; i < 3; i++) // подставляем то, что выразили
-        //{
-        if (check(dBuffer[iLine], &iIndex) == 0)
+        if (check(dBuffer[iLine], &iIndex) == 0) // substitution
         {
             for (int j = 0; j < 3; j++)
             {
-
-                //if (j != i)
                 if (j != iLine)
                 {
 
-                    if (dBuffer[j][iIndex] != 0.0) // слева
+                    if (dBuffer[j][iIndex] != 0.0) // to the left side
                     {
                         for (int k = 0; k < 3; k++)
                         {
@@ -228,7 +223,7 @@ void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteris
                         }
                         dBuffer[j][iIndex] = 0.0;
                     }
-                    if (dBuffer[j][iIndex + 3] != 0.0) // справа
+                    if (dBuffer[j][iIndex + 3] != 0.0) // to the right side
                     {
                         for (int k = 0; k < 3; k++)
                         {
@@ -239,9 +234,7 @@ void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteris
                 }
 
             }
-            //break;
         }
-        //}
 
         for (int i = 0; i < 3; i++)
         {
@@ -253,11 +246,13 @@ void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteris
                 }
             }
         }
-        // проверка
+
+        // check
         flag0 = 0;
         for (int i = 0; i < 3; i++)
         {
-            if ((memcmp(dZeroArray, dBuffer[i], 6 * sizeof(double)) == 0) ||
+            if ((dBuffer[i][0] == 0.0 && dBuffer[i][1] == 0.0 && dBuffer[i][2] == 0.0 &&
+                 dBuffer[i][3] == 0.0 && dBuffer[i][4] == 0.0 && dBuffer[i][5] == 0.0) ||
                 ((dBuffer[i][0] == 1 || dBuffer[i][1] == 1 || dBuffer[i][2] == 1) &&
                 (check(dBuffer[i], NULL) == 0 && check(&dBuffer[i][3], NULL) == 0)))
             {
@@ -271,7 +266,7 @@ void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteris
 
     }
 
-    // запись результата
+    // write result
     for (int i = 0; i < 3; i++)
     {
         check(dBuffer[i], &iIndex1);
@@ -290,7 +285,7 @@ void Tensor::getCharacteristicVector(double dTensorIn[3][3], double dCharacteris
         }
     }
 
-    // нормирование
+    // normalizing
     double dAbsX = sqrt(
         dCharacteristicVector[0] * dCharacteristicVector[0] +
         dCharacteristicVector[1] * dCharacteristicVector[1] +
